@@ -30,6 +30,8 @@ def login():
     return {"auth_url": spotify_auth_url}
 
 # /auth/callback: Handle Spotify redirect and save user
+from fastapi.responses import RedirectResponse
+
 @router.get("/auth/callback")
 def auth_callback(request: Request, db: Session = Depends(get_db)):
     code = request.query_params.get("code")
@@ -94,7 +96,10 @@ def auth_callback(request: Request, db: Session = Depends(get_db)):
 
     db.commit()
 
-    return JSONResponse(content={"message": "User saved", "user_id": db_user.id})
+    # Step 4: Redirect to frontend dashboard with user_id
+    dashboard_url = f"http://localhost:3000/dashboard?user_id={db_user.id}"
+    return RedirectResponse(url=dashboard_url, status_code=302)
+
 
 @router.get("/me/{user_id}")
 def get_user(user_id: str, db: Session = Depends(get_db)):
